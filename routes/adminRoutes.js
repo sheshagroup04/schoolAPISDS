@@ -3,8 +3,9 @@ const { authenticate } = require("../middleware/authenticate");
 const { isAdmin } = require("../middleware/roleCheck");
 const AdminTeacherController = require("../controllers/adminController");
 const AdminGlobalNoticeImageController = require("../controllers/globalNoticeImage");
+const AdminGlobalNoticePdfController = require("../controllers/globalNoticePdf");
 const AdminGalleryController = require("../controllers/galleryController");
-
+const upload = require("../middleware/uploadMiddleware")
 const uploadImage = require("../middleware/imageUpload");
 // Multer middleware for multiple file uploads
 const galleryUpload = uploadImage.array("images", 5); // Maximum of 15 images
@@ -13,6 +14,7 @@ const router = express.Router();
 
 // login
 router.post("/login", AdminTeacherController.login);
+
 // Middleware for authentication and admin role check
 router.use(authenticate, isAdmin);
 
@@ -28,6 +30,13 @@ router.post("/globalNoticeImage/upload", uploadImage.single("file"), AdminGlobal
 router.get("/globalNoticeImage", AdminGlobalNoticeImageController.getAllGlobalImages); // Get all global notice images
 router.put("/globalNoticeImage/:id", uploadImage.single("file"), AdminGlobalNoticeImageController.updateGlobalImage); // Update a global notice image
 router.delete("/globalNoticeImage/:id", AdminGlobalNoticeImageController.deleteGlobalImage); // Delete a global notice image
+
+// Global Notice PDF CRUD operations managed by Admin
+router.post("/globalNoticePdf/upload", upload.single("file"), AdminGlobalNoticePdfController.uploadNoticePdf); // Upload a global notice image
+router.get("/globalNoticePdf", AdminGlobalNoticePdfController.getAllNoticePdfs); // Get all global notice images
+router.put("/globalNoticePdf/:id", upload.single("file"), AdminGlobalNoticePdfController.updateNoticePdf); // Update a global notice image
+router.delete("/globalNoticePdf/:id", AdminGlobalNoticePdfController.deleteNoticePdf); // Delete a global notice image
+
 
 // Gallery CRUD operations managed by Admin
 router.post("/gallery/upload", galleryUpload, AdminGalleryController.uploadGallery); // Upload a gallery
