@@ -13,8 +13,8 @@ const libraryController = require("../controllers/libraryController")
 const noticePdfController = require("../controllers/noticePdfController")
 const noticeImageController = require("../controllers/noticeImageController")
 const diaryController = require("../controllers/diaryController");
-const AdminTeacherController = require("../controllers/adminController");
 const AdminGlobalNoticeImageController = require("../controllers/globalNoticeImage");
+const AdminGlobalNoticePdfController = require("../controllers/globalNoticePdf");
 const AdminGalleryController = require("../controllers/galleryController");
 
 const { authenticate, isStudent } = require("../middleware/authenticate");
@@ -34,7 +34,7 @@ router.get("/library/:className", libraryController.getAllLibraryByClass);
 router.get("/notice/pdf/:className", noticePdfController.getAllNoticePdfsByClass);
 router.get("/notice/image/:className", noticeImageController.getNoticeImagesByClass);
 router.get("/diary/:className", diaryController.getDiaryByClass);
-
+router.get("/globalNoticePdf", AdminGlobalNoticePdfController.getAllNoticePdfs); // Get all global notice images
 router.get("/globalNoticeImage", AdminGlobalNoticeImageController.getAllGlobalImages); // Get all global notice images
 router.get("/gallery", AdminGalleryController.getGallery); // Get all galleries
 
