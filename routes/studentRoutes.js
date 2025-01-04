@@ -3,6 +3,7 @@ const router = express.Router();
 const studentController = require("../controllers/studentController");
 const applicationImageController = require("../controllers/applicationImage");
 const applicationTextController = require("../controllers/applicationText");
+const teacherController = require("../controllers/teacherController");
 
 // CW, HW, DPP, Library, Notice PDF, Notice Image, Diary Read operations
 
@@ -21,9 +22,13 @@ const { authenticate, isStudent } = require("../middleware/authenticate");
 const uploadImage = require("../middleware/imageUpload");
 
 // Student login route
-router.post("/login", studentController.studentLogin);
+router.post("/login",authenticate, studentController.studentLogin);
 
 router.use(authenticate, isStudent);
+
+// Get student details by ID (only accessible to authenticated teachers)
+router.get("/students/:studentId", authenticate, isStudent, teacherController.getStudentById);
+
 
 // CW, HW, DPP, Library, Notice PDF, Notice Image, Diary Read operations managed by Student
 

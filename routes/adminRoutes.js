@@ -19,7 +19,7 @@ router.post("/login", AdminTeacherController.login);
 router.use(authenticate, isAdmin);
 
 // Teacher CRUD operations managed by Admin
-router.post("/teachers", AdminTeacherController.createTeacher); // Create a new teacher
+router.post("/teachers/add", AdminTeacherController.createTeacher); // Create a new teacher
 router.get("/teachers", AdminTeacherController.getAllTeachers); // Get all teachers
 router.get("/teachers/:id", AdminTeacherController.getTeacherById); // Get a teacher by ID
 router.put("/teachers/:id", AdminTeacherController.updateTeacher); // Update a teacher

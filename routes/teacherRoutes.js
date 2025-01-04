@@ -21,7 +21,7 @@ const router = express.Router();
 router.post("/login", teacherController.teacherLogin);
 
 // Create a new student (only accessible to authenticated teachers)
-router.post("/students", authenticate, isTeacher, teacherController.createStudent);
+router.post("/students/add", authenticate, isTeacher, teacherController.createStudent);
 
 // Get all students in a class (only accessible to authenticated teachers)
 router.get("/students/:className", authenticate, isTeacher, teacherController.getAllStudents);
