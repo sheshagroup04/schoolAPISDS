@@ -17,17 +17,19 @@ const diaryController = require("../controllers/diaryController");
 const AdminGlobalNoticeImageController = require("../controllers/globalNoticeImage");
 const AdminGlobalNoticePdfController = require("../controllers/globalNoticePdf");
 const AdminGalleryController = require("../controllers/galleryController");
+const authController = require("../controllers/authController");
 
-const { authenticate, isStudent } = require("../middleware/authenticate");
+const { authenticate, verifyAccessToken, isStudent } = require("../middleware/authenticate");
 const uploadImage = require("../middleware/imageUpload");
 
 // Student login route
 router.post("/login",authenticate, studentController.studentLogin);
+router.post("/refresh",authenticate, authController.refreshTokens);
 
-router.use(authenticate, isStudent);
+router.use(authenticate, verifyAccessToken, isStudent);
 
 // Get student details by ID (only accessible to authenticated teachers)
-router.get("/students/:studentId", authenticate, isStudent, teacherController.getStudentById);
+router.get("/students/:studentId", teacherController.getStudentById);
 
 
 // CW, HW, DPP, Library, Notice PDF, Notice Image, Diary Read operations managed by Student

@@ -15,7 +15,7 @@ const authorizeFileAccess = async (req, res, next) => {
     }
 
     // Verify the token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
 
     // Find the user from the database using the ID from the token
     const user = await User.findById(decoded.id);

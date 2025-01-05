@@ -2,39 +2,47 @@ const Teacher = require("../models/Teacher");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
+const RefreshToken = require("../models/RefreshToken");
 
+// Generate Tokens
+const generateTokens = async (user) => {
+  const accessToken = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: "24h" }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: user._id, role: user.role },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+  await RefreshToken.create({ token: hashedRefreshToken, userId: user._id });
+
+  return { accessToken, refreshToken };
+};
+
+// Login
 exports.login = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        // Check if email and password are provided
-        if (!email || !password) {
-            return res.status(400).json({ message: "Email and password are required" });
-        }
-
-        // Find the user by email
-        const user = await User.findOne({ email });
-        if (!user) {
-            return res.status(401).json({ message: "Invalid credentials" });
-        }
-
-        // Compare the password
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            return res.status(401).json({ message: "Invalid credentials" });
-        }
-
-        // Generate a token
-        const token = jwt.sign(
-            { id: user._id, role: user.role }, // Payload
-            process.env.JWT_SECRET,          // Secret
-            { expiresIn: "1h" }              // Token expiry
-        );
-
-        res.status(200).json({ message: "Login successful", token });
-    } catch (error) {
-        res.status(500).json({ message: "Internal server error", error: error.message });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
     }
+
+    const user = await User.findOne({ email });
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const tokens = await generateTokens(user);
+    res.status(200).json({ message: "Login successful", ...tokens });
+  } catch (error) {
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
 };
 
 // Create a new teacher

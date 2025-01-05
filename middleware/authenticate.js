@@ -10,6 +10,35 @@ const authenticate = (req, res, next) => {
     }
   };
 
+  // Middleware to authenticate JWT token
+
+  const verifyAccessToken = (req, res, next) => {
+    try {
+      // Check if the Authorization header is present
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ message: "Access token is required" });
+      }
+  
+      // Extract the token from the Authorization header
+      const token = authHeader.split(" ")[1];
+  
+      // Verify the token
+      jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(403).json({ message: "Invalid or expired token" });
+        }
+  
+        // Attach decoded token data to the request
+        req.user = decoded; // Example: { id: "userId", role: "userRole", iat: ..., exp: ... }
+        next();
+      });
+    } catch (error) {
+      res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+  };
+
+
 // Middleware to check if the user is a teacher
 const isTeacher = (req, res, next) => {
     const userRole = req.user?.role; // Assuming req.user contains the logged-in user's data
@@ -38,4 +67,11 @@ const isStudent = (req, res, next) => {
     }
 };
 
-module.exports = { authenticate, isTeacher, isStudent };
+const isAdmin = (req, res, next) => {
+  if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Access denied. Only admins can perform this action." });
+  }
+  next();
+};
+
+module.exports = { authenticate, verifyAccessToken, isTeacher, isStudent, isAdmin };

@@ -1,48 +1,51 @@
 const jwt = require("jsonwebtoken");
 const Teacher = require("../models/Teacher"); // Teacher model
 const Student = require("../models/Student"); // Student model
+const RefreshToken = require("../models/RefreshToken");
+const Teacher = require("../models/Teacher");
 
-// Teacher Login
+// Generate Tokens
+const generateTokens = async (teacher) => {
+  const accessToken = jwt.sign(
+    { id: teacher.id, role: "teacher" },
+    process.env.JWT_SECRET,
+    { expiresIn: "24h" }
+  );
+
+  const refreshToken = jwt.sign(
+    { id: teacher.id, role: "teacher" },
+    process.env.REFRESH_TOKEN_SECRET,
+    { expiresIn: "7d" }
+  );
+
+  const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+  await RefreshToken.create({ token: hashedRefreshToken, userId: teacher.id });
+
+  return { accessToken, refreshToken };
+};
+
+// Login
 exports.teacherLogin = async (req, res) => {
   try {
     const { id, password } = req.body;
 
-    // Validate input
     if (!id || !password) {
       return res.status(400).json({ message: "ID and password are required" });
     }
 
-    // Find teacher by ID
     const teacher = await Teacher.findOne({ id });
-    if (!teacher) {
+    if (!teacher || !(await teacher.comparePassword(password))) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Compare password
-    const isPasswordCorrect = await teacher.comparePassword(password);
-    if (!isPasswordCorrect) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
-
-    // Generate JWT token
-    const token = jwt.sign(
-      { id: teacher.id, role: "teacher" }, // Include role in token payload
-      process.env.JWT_SECRET,
-      { expiresIn: "1h" } // Token expires in 1 hour
-    );
-
+    const tokens = await generateTokens(teacher);
     res.status(200).json({
-      token,
       message: "Login successful",
-      teacher: {
-        id: teacher.id,
-        name: teacher.name,
-        class: teacher.class,
-      },
+      ...tokens,
+      teacher: { id: teacher.id, name: teacher.name, class: teacher.class },
     });
   } catch (error) {
-    console.error("Teacher Login Error:", error.message);
-    res.status(500).json({ message: "Internal server error" });
+    res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };
 

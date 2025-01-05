@@ -1,10 +1,11 @@
 const express = require("express");
-const { authenticate } = require("../middleware/authenticate");
-const { isAdmin } = require("../middleware/roleCheck");
+const { authenticate, verifyAccessToken, isAdmin} = require("../middleware/authenticate");
 const AdminTeacherController = require("../controllers/adminController");
 const AdminGlobalNoticeImageController = require("../controllers/globalNoticeImage");
 const AdminGlobalNoticePdfController = require("../controllers/globalNoticePdf");
 const AdminGalleryController = require("../controllers/galleryController");
+const authController = require("../controllers/authController");
+
 const upload = require("../middleware/uploadMiddleware")
 const uploadImage = require("../middleware/imageUpload");
 // Multer middleware for multiple file uploads
@@ -14,9 +15,10 @@ const router = express.Router();
 
 // login
 router.post("/login", AdminTeacherController.login);
+router.post("/refresh",authenticate, authController.refreshTokens);
 
 // Middleware for authentication and admin role check
-router.use(authenticate, isAdmin);
+router.use(authenticate, verifyAccessToken, isAdmin);
 
 // Teacher CRUD operations managed by Admin
 router.post("/teachers/add", AdminTeacherController.createTeacher); // Create a new teacher
